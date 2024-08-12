@@ -1,0 +1,130 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import warnings
+from sklearn.model_selection import KFold, StratifiedKFold, cross_val_score
+from sklearn import linear_model, tree, ensemble
+df = pd.read_csv(r"D:\computer vision practice code\all projects ml\email prediction project\heart.csv")
+df.head()
+df.shape
+# now let us look at whether the dataset has null values or not
+df.isna().sum()
+plt.figure(figsize=(15,10))
+sns.heatmap(df.corr(),linewidth=.01,annot=True,cmap="winter")
+plt.show()
+plt.savefig('correlationfigure')
+df.hist(figsize=(12,12))
+plt.savefig('featuresplot')
+from sklearn.model_selection import train_test_split
+
+X=df.drop('target',axis=1)
+y=df['target']
+X_train, X_test,y_train, y_test=train_test_split(X,y,test_size=0.25,random_state=40)
+
+
+
+
+X_train.shape
+X_test.shape
+y_train.shape
+y_test.shape
+from sklearn.model_selection import cross_val_score, GridSearchCV
+from sklearn.linear_model import LogisticRegression
+lr=LogisticRegression(C=1.0, class_weight='balanced', dual=False,
+                   fit_intercept=True, intercept_scaling=1, l1_ratio=None,
+                   max_iter=100, multi_class='auto', n_jobs=None, penalty='l2',
+                   random_state=1234, solver='lbfgs', tol=0.0001, verbose=0,
+                   warm_start=False)
+model1=lr.fit(X_train,y_train)
+prediction1=model1.predict(X_test)
+from sklearn.metrics import confusion_matrix
+cm=confusion_matrix(y_test,prediction1)
+cm
+sns.heatmap(cm, annot=True,cmap='winter',linewidths=0.3, linecolor='black',annot_kws={"size": 20})
+TP=cm[0][0]
+TN=cm[1][1]
+FN=cm[1][0]
+FP=cm[0][1]
+
+print('Testing Accuracy for Logistic Regression:',(TP+TN)/(TP+TN+FN+FP))
+print('Testing Sensitivity for Logistic Regression:',(TP/(TP+FN)))
+print('Testing Specificity for Logistic Regression:',(TN/(TN+FP)))
+print('Testing Precision for Logistic Regression:',(TP/(TP+FP)))
+from sklearn.metrics import classification_report
+print(classification_report(y_test, prediction1))
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.tree import DecisionTreeClassifier
+
+tree_model = DecisionTreeClassifier(max_depth=5,criterion='entropy')
+cv_scores = cross_val_score(tree_model, X, y, cv=10, scoring='accuracy')
+m=tree_model.fit(X, y)
+prediction=m.predict(X_test)
+cm= confusion_matrix(y_test,prediction)
+sns.heatmap(cm, annot=True,cmap='winter',linewidths=0.3, linecolor='black',annot_kws={"size": 20})
+print(classification_report(y_test, prediction))
+
+TP=cm[0][0]
+TN=cm[1][1]
+FN=cm[1][0]
+FP=cm[0][1]
+print('Testing Accuracy for Decision Tree:',(TP+TN)/(TP+TN+FN+FP))
+print('Testing Sensitivity for Decision Tree:',(TP/(TP+FN)))
+print('Testing Specificity for Decision Tree:',(TN/(TN+FP)))
+print('Testing Precision for Decision Tree:',(TP/(TP+FP)))
+from sklearn.metrics import accuracy_score
+from sklearn.ensemble import RandomForestClassifier
+rfc=RandomForestClassifier(n_estimators=500,criterion='entropy',max_depth=8,min_samples_split=5)
+model3 = rfc.fit(X_train, y_train)
+prediction3 = model3.predict(X_test)
+cm3=confusion_matrix(y_test, prediction3)
+sns.heatmap(cm3, annot=True,cmap='winter',linewidths=0.3, linecolor='black',annot_kws={"size": 20})
+TP=cm3[0][0]
+TN=cm3[1][1]
+FN=cm3[1][0]
+FP=cm3[0][1]
+print(round(accuracy_score(prediction3,y_test)*100,2))
+print('Testing Accuracy for Random Forest:',(TP+TN)/(TP+TN+FN+FP))
+print('Testing Sensitivity for Random Forest:',(TP/(TP+FN)))
+print('Testing Specificity for Random Forest:',(TN/(TN+FP)))
+print('Testing Precision for Random Forest:',(TP/(TP+FP)))
+print('Classifi-report',classification_report(y_test, prediction3))
+from sklearn.svm import SVC
+svm=SVC(C=12,kernel='linear')
+model4=svm.fit(X_train,y_train)
+prediction4=model4.predict(X_test)
+cm4= confusion_matrix(y_test,prediction4)
+sns.heatmap(cm4, annot=True,cmap='winter',linewidths=0.3, linecolor='black',annot_kws={"size": 20})
+TP=cm4[0][0]
+TN=cm4[1][1]
+FN=cm4[1][0]
+FP=cm4[0][1]
+print(classification_report(y_test, prediction4))
+print('Testing Accuracy for SVM:',(TP+TN)/(TP+TN+FN+FP))
+print('Testing Sensitivity for Random Forest:',(TP/(TP+FN)))
+print('Testing Specificity for Random Forest:',(TN/(TN+FP)))
+print(accuracy_score(y_test,prediction4))
+    
+
+df
+# Final Model Implementation
+#CASE 1 – For Heart Disease data new values prediction
+# input=(63,3,145,233,150,2.3,0)
+input = (52	,1	,0	,125	,212	,0	,1	,168,	0	,1.0,	2,	2,	3	)
+input_as_numpy=np.asarray(input)
+input_reshaped=input_as_numpy.reshape(1,-1)
+pre1=tree_model.predict(input_reshaped)
+if(pre1==1): 
+  print("The patient seems to be have heart disease:(")
+else:
+  print("The patient seems to be Normal:)")
+#CASE 2 – For Heart Disease data new values prediction 
+# input=(63,3,145,233,150,2.3,0)
+input = (59	,1	,4	,100	,235	,0	,1	,168,	0	,1.0,	2,	2,	3	)
+input_as_numpy=np.asarray(input)
+input_reshaped=input_as_numpy.reshape(1,-1)
+pre1=tree_model.predict(input_reshaped)
+if(pre1==1): 
+  print("The patient seems to be have heart disease:(")
+else:
+  print("The patient seems to be Normal:)")
